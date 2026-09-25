@@ -77,7 +77,7 @@
         }
 
         .input-group input {
-            width: 105px;
+            width: 115px;
             padding: 6px 8px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
@@ -126,6 +126,10 @@
                 <label for="temp-f">Fahrenheit (°F):</label>
                 <input type="number" id="temp-f" placeholder="100.4" step="0.1">
             </div>
+            <div class="input-group">
+                <label for="temp-cat">Estado:</label>
+                <input type="text" id="temp-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
+            </div>
         </div>
 
         <!-- PESO -->
@@ -171,7 +175,7 @@
             </div>
             <div class="input-group">
                 <label for="bmi-cat">Categoría:</label>
-                <input type="text" id="bmi-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: 600; color: var(--primary);">
+                <input type="text" id="bmi-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
             </div>
         </div>
 
@@ -185,6 +189,10 @@
             <div class="input-group">
                 <label for="glu-mmol">mmol/L (Intl):</label>
                 <input type="number" id="glu-mmol" placeholder="5.5" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="glu-cat">Estado (Ayuno):</label>
+                <input type="text" id="glu-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
             </div>
         </div>
 
@@ -281,29 +289,102 @@
     // ELEMENTOS DOM
     const tempC = document.getElementById('temp-c');
     const tempF = document.getElementById('temp-f');
+    const tempCat = document.getElementById('temp-cat');
+
     const pesoKg = document.getElementById('peso-kg');
     const pesoLb = document.getElementById('peso-lb');
     const pesoOz = document.getElementById('peso-oz');
     const altCm = document.getElementById('alt-cm');
     const altFt = document.getElementById('alt-ft');
     const altIn = document.getElementById('alt-in');
+
     const bmiInput = document.getElementById('bmi-input');
     const bmiCat = document.getElementById('bmi-cat');
+
     const gluMg = document.getElementById('glu-mg');
     const gluMmol = document.getElementById('glu-mmol');
+    const gluCat = document.getElementById('glu-cat');
+
     const volMl = document.getElementById('vol-ml');
     const volTsp = document.getElementById('vol-tsp');
     const volTbsp = document.getElementById('vol-tbsp');
     const volFloz = document.getElementById('vol-floz');
 
-    // CLASIFICACIÓN CLÍNICA DE IMC
-    function obtenerCategoriaIMC(bmi) {
-        if (bmi < 18.5) return "Bajo peso";
-        if (bmi < 25.0) return "Normal";
-        if (bmi < 30.0) return "Sobrepeso";
-        if (bmi < 35.0) return "Obesidad I";
-        if (bmi < 40.0) return "Obesidad II";
-        return "Obesidad III";
+    // PALETA DE COLORES
+    const COLOR_GREEN = "#16a34a";
+    const COLOR_YELLOW = "#d97706";
+    const COLOR_RED = "#dc2626";
+
+    // 1. EVALUACIÓN Y SEMAFORIZACIÓN DE TEMPERATURA
+    function actualizarEstadoTemperatura(c) {
+        if (isNaN(c) || tempC.value === '') {
+            tempCat.value = '';
+            tempCat.style.color = 'var(--primary)';
+            return;
+        }
+
+        if (c < 37.5) {
+            tempCat.value = "Normal";
+            tempCat.style.color = COLOR_GREEN;
+        } else if (c < 38.0) {
+            tempCat.value = "Febrícula";
+            tempCat.style.color = COLOR_YELLOW;
+        } else {
+            tempCat.value = "Fiebre";
+            tempCat.style.color = COLOR_RED;
+        }
+    }
+
+    // 2. EVALUACIÓN Y SEMAFORIZACIÓN DE IMC
+    function actualizarEstadoIMC(bmi) {
+        if (isNaN(bmi) || bmi <= 0) {
+            bmiCat.value = '';
+            bmiCat.style.color = 'var(--primary)';
+            return;
+        }
+
+        if (bmi < 18.5) {
+            bmiCat.value = "Bajo peso";
+            bmiCat.style.color = COLOR_GREEN;
+        } else if (bmi < 25.0) {
+            bmiCat.value = "Normal";
+            bmiCat.style.color = COLOR_GREEN;
+        } else if (bmi < 30.0) {
+            bmiCat.value = "Sobrepeso";
+            bmiCat.style.color = COLOR_YELLOW;
+        } else if (bmi < 35.0) {
+            bmiCat.value = "Obesidad I";
+            bmiCat.style.color = COLOR_RED;
+        } else if (bmi < 40.0) {
+            bmiCat.value = "Obesidad II";
+            bmiCat.style.color = COLOR_RED;
+        } else {
+            bmiCat.value = "Obesidad III";
+            bmiCat.style.color = COLOR_RED;
+        }
+    }
+
+    // 3. EVALUACIÓN Y SEMAFORIZACIÓN DE GLICEMIA (EN AYUNAS / RANGOS CLÍNICOS)
+    function actualizarEstadoGlucemia(mg) {
+        if (isNaN(mg) || gluMg.value === '') {
+            gluCat.value = '';
+            gluCat.style.color = 'var(--primary)';
+            return;
+        }
+
+        if (mg < 70) {
+            gluCat.value = "Hipoglucemia";
+            gluCat.style.color = COLOR_RED;
+        } else if (mg <= 99) {
+            gluCat.value = "Normal";
+            gluCat.style.color = COLOR_GREEN;
+        } else if (mg <= 125) {
+            gluCat.value = "Prediabetes";
+            gluCat.style.color = COLOR_YELLOW;
+        } else {
+            gluCat.value = "Hiperglucemia";
+            gluCat.style.color = COLOR_RED;
+        }
     }
 
     // CÁLCULO DE IMC DESDE PESO Y ALTURA
@@ -315,10 +396,10 @@
             const mts = cm / 100;
             const bmi = (kg / (mts * mts)).toFixed(1);
             bmiInput.value = bmi;
-            bmiCat.value = obtenerCategoriaIMC(parseFloat(bmi));
+            actualizarEstadoIMC(parseFloat(bmi));
         } else if (pesoKg.value === '' || altCm.value === '') {
             bmiInput.value = '';
-            bmiCat.value = '';
+            actualizarEstadoIMC(NaN);
         }
     }
 
@@ -328,7 +409,7 @@
         const cm = parseFloat(altCm.value);
 
         if (bmi > 0) {
-            bmiCat.value = obtenerCategoriaIMC(bmi);
+            actualizarEstadoIMC(bmi);
             if (cm > 0) {
                 const mts = cm / 100;
                 const targetKg = (bmi * (mts * mts)).toFixed(1);
@@ -340,24 +421,29 @@
                 pesoOz.value = ((totalLbs - lbs) * 16).toFixed(1);
             }
         } else {
-            bmiCat.value = '';
+            actualizarEstadoIMC(NaN);
         }
     });
 
     // TEMPERATURA
     tempC.addEventListener('input', () => {
-        if (tempC.value === '') { tempF.value = ''; return; }
-        tempF.value = ((parseFloat(tempC.value) * 1.8) + 32).toFixed(1);
+        if (tempC.value === '') { tempF.value = ''; actualizarEstadoTemperatura(NaN); return; }
+        const c = parseFloat(tempC.value);
+        tempF.value = ((c * 1.8) + 32).toFixed(1);
+        actualizarEstadoTemperatura(c);
     });
 
     tempF.addEventListener('input', () => {
-        if (tempF.value === '') { tempC.value = ''; return; }
-        tempC.value = ((parseFloat(tempF.value) - 32) / 1.8).toFixed(1);
+        if (tempF.value === '') { tempC.value = ''; actualizarEstadoTemperatura(NaN); return; }
+        const f = parseFloat(tempF.value);
+        const c = (f - 32) / 1.8;
+        tempC.value = c.toFixed(1);
+        actualizarEstadoTemperatura(c);
     });
 
     // PESO
     pesoKg.addEventListener('input', () => {
-        if (pesoKg.value === '') { pesoLb.value = ''; pesoOz.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
+        if (pesoKg.value === '') { pesoLb.value = ''; pesoOz.value = ''; bmiInput.value = ''; actualizarEstadoIMC(NaN); return; }
         const kg = parseFloat(pesoKg.value);
         const totalLbs = kg * 2.20462;
         const lbs = Math.floor(totalLbs);
@@ -369,7 +455,7 @@
     function calcKgFromLbOz() {
         const lbs = parseFloat(pesoLb.value) || 0;
         const oz = parseFloat(pesoOz.value) || 0;
-        if (pesoLb.value === '' && pesoOz.value === '') { pesoKg.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
+        if (pesoLb.value === '' && pesoOz.value === '') { pesoKg.value = ''; bmiInput.value = ''; actualizarEstadoIMC(NaN); return; }
         pesoKg.value = ((lbs * 0.453592) + (oz * 0.0283495)).toFixed(2);
         calcularIMCDesdePeso();
     }
@@ -379,7 +465,7 @@
 
     // ALTURA
     altCm.addEventListener('input', () => {
-        if (altCm.value === '') { altFt.value = ''; altIn.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
+        if (altCm.value === '') { altFt.value = ''; altIn.value = ''; bmiInput.value = ''; actualizarEstadoIMC(NaN); return; }
         const cm = parseFloat(altCm.value);
         const totalInches = cm / 2.54;
         altFt.value = Math.floor(totalInches / 12);
@@ -390,7 +476,7 @@
     function calcCmFromFtIn() {
         const ft = parseFloat(altFt.value) || 0;
         const inches = parseFloat(altIn.value) || 0;
-        if (altFt.value === '' && altIn.value === '') { altCm.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
+        if (altFt.value === '' && altIn.value === '') { altCm.value = ''; bmiInput.value = ''; actualizarEstadoIMC(NaN); return; }
         altCm.value = ((ft * 30.48) + (inches * 2.54)).toFixed(1);
         calcularIMCDesdePeso();
     }
@@ -400,13 +486,18 @@
 
     // GLICEMIA
     gluMg.addEventListener('input', () => {
-        if (gluMg.value === '') { gluMmol.value = ''; return; }
-        gluMmol.value = (parseFloat(gluMg.value) / 18.0182).toFixed(1);
+        if (gluMg.value === '') { gluMmol.value = ''; actualizarEstadoGlucemia(NaN); return; }
+        const mg = parseFloat(gluMg.value);
+        gluMmol.value = (mg / 18.0182).toFixed(1);
+        actualizarEstadoGlucemia(mg);
     });
 
     gluMmol.addEventListener('input', () => {
-        if (gluMmol.value === '') { gluMg.value = ''; return; }
-        gluMg.value = Math.round(parseFloat(gluMmol.value) * 18.0182);
+        if (gluMmol.value === '') { gluMg.value = ''; actualizarEstadoGlucemia(NaN); return; }
+        const mmol = parseFloat(gluMmol.value);
+        const mg = Math.round(mmol * 18.0182);
+        gluMg.value = mg;
+        actualizarEstadoGlucemia(mg);
     });
 
     // VOLUMEN Y DOSIS
