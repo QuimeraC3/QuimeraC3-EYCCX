@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Herramienta Integral para Intérpretes Médicos</title>
     
-    <!-- Librerías para el buscador en la tabla -->
+    <!-- Librerías para la tabla con buscador rápido -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -39,7 +39,7 @@
             margin-bottom: 25px;
         }
 
-        /* ESTILOS DE LA CALCULADORA */
+        /* GRID DE CALCULADORAS */
         .calculator-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -91,14 +91,6 @@
             box-shadow: 0 0 0 2px var(--primary-light);
         }
 
-        .bmi-output {
-            width: 100% !important;
-            text-align: center !important;
-            font-weight: bold;
-            background-color: #f1f5f9;
-            color: var(--primary);
-        }
-
         /* ESTILOS DE LA TABLA */
         .table-card {
             background: var(--card-bg);
@@ -120,7 +112,7 @@
 <div class="container">
     <h1>Herramienta Integral para Intérpretes Médicos</h1>
 
-    <!-- CALCULADORA INTERACTIVA -->
+    <!-- PANEL DE CONVERSIÓN RÁPIDA -->
     <div class="calculator-grid">
         
         <!-- TEMPERATURA -->
@@ -170,12 +162,16 @@
             </div>
         </div>
 
-        <!-- ÍNDICE DE MASA CORPORAL (IMC) -->
+        <!-- ÍNDICE DE MASA CORPORAL (IMC) - BIDIRECCIONAL -->
         <div class="calc-card">
             <h3>📊 IMC / BMI</h3>
-            <p style="font-size: 0.75rem; color: #64748b; margin-top: -5px; margin-bottom: 10px;">Autocálculo según peso y altura</p>
             <div class="input-group">
-                <input type="text" id="bmi-result" class="bmi-output" readonly placeholder="Esperando datos...">
+                <label for="bmi-input">Valor IMC:</label>
+                <input type="number" id="bmi-input" placeholder="24.5" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="bmi-cat">Categoría:</label>
+                <input type="text" id="bmi-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: 600; color: var(--primary);">
             </div>
         </div>
 
@@ -196,7 +192,7 @@
         <div class="calc-card">
             <h3>🥄 Volumen / Dosis</h3>
             <div class="input-group">
-                <label for="vol-ml">Mililitros (mL / cc):</label>
+                <label for="vol-ml">Mililitros (mL/cc):</label>
                 <input type="number" id="vol-ml" placeholder="15" step="0.5">
             </div>
             <div class="input-group">
@@ -215,7 +211,7 @@
 
     </div>
 
-    <!-- TABLA DE BÚSQUEDA RÁPIDA -->
+    <!-- GUÍA DE CONSULTA RÁPIDA EN TABLA -->
     <div class="table-card">
         <h3 style="margin-top:0; color: var(--primary);">📋 Guía de Consulta Rápida</h3>
         <table id="tabla-medica" class="display responsive nowrap" style="width:100%">
@@ -282,8 +278,7 @@
 </div>
 
 <script>
-    // --- LÓGICA DE CONVERSIÓN EN TIEMPO REAL ---
-
+    // ELEMENTOS DOM
     const tempC = document.getElementById('temp-c');
     const tempF = document.getElementById('temp-f');
     const pesoKg = document.getElementById('peso-kg');
@@ -292,7 +287,8 @@
     const altCm = document.getElementById('alt-cm');
     const altFt = document.getElementById('alt-ft');
     const altIn = document.getElementById('alt-in');
-    const bmiResult = document.getElementById('bmi-result');
+    const bmiInput = document.getElementById('bmi-input');
+    const bmiCat = document.getElementById('bmi-cat');
     const gluMg = document.getElementById('glu-mg');
     const gluMmol = document.getElementById('glu-mmol');
     const volMl = document.getElementById('vol-ml');
@@ -300,28 +296,53 @@
     const volTbsp = document.getElementById('vol-tbsp');
     const volFloz = document.getElementById('vol-floz');
 
-    // CÁLCULO DE IMC (BMI)
-    function calcularIMC() {
+    // CLASIFICACIÓN CLÍNICA DE IMC
+    function obtenerCategoriaIMC(bmi) {
+        if (bmi < 18.5) return "Bajo peso";
+        if (bmi < 25.0) return "Normal";
+        if (bmi < 30.0) return "Sobrepeso";
+        if (bmi < 35.0) return "Obesidad I";
+        if (bmi < 40.0) return "Obesidad II";
+        return "Obesidad III";
+    }
+
+    // CÁLCULO DE IMC DESDE PESO Y ALTURA
+    function calcularIMCDesdePeso() {
         const kg = parseFloat(pesoKg.value);
         const cm = parseFloat(altCm.value);
 
         if (kg > 0 && cm > 0) {
             const mts = cm / 100;
             const bmi = (kg / (mts * mts)).toFixed(1);
-            let cat = "";
-
-            if (bmi < 18.5) cat = "Bajo peso";
-            else if (bmi < 25.0) cat = "Normal";
-            else if (bmi < 30.0) cat = "Sobrepeso";
-            else if (bmi < 35.0) cat = "Obesidad I";
-            else if (bmi < 40.0) cat = "Obesidad II";
-            else cat = "Obesidad III";
-
-            bmiResult.value = `${bmi} (${cat})`;
-        } else {
-            bmiResult.value = "Esperando datos...";
+            bmiInput.value = bmi;
+            bmiCat.value = obtenerCategoriaIMC(parseFloat(bmi));
+        } else if (pesoKg.value === '' || altCm.value === '') {
+            bmiInput.value = '';
+            bmiCat.value = '';
         }
     }
+
+    // LÓGICA DE IMC BIDIRECCIONAL (IMC -> PESO)
+    bmiInput.addEventListener('input', () => {
+        const bmi = parseFloat(bmiInput.value);
+        const cm = parseFloat(altCm.value);
+
+        if (bmi > 0) {
+            bmiCat.value = obtenerCategoriaIMC(bmi);
+            if (cm > 0) {
+                const mts = cm / 100;
+                const targetKg = (bmi * (mts * mts)).toFixed(1);
+                pesoKg.value = targetKg;
+                
+                const totalLbs = targetKg * 2.20462;
+                const lbs = Math.floor(totalLbs);
+                pesoLb.value = lbs;
+                pesoOz.value = ((totalLbs - lbs) * 16).toFixed(1);
+            }
+        } else {
+            bmiCat.value = '';
+        }
+    });
 
     // TEMPERATURA
     tempC.addEventListener('input', () => {
@@ -336,21 +357,21 @@
 
     // PESO
     pesoKg.addEventListener('input', () => {
-        if (pesoKg.value === '') { pesoLb.value = ''; pesoOz.value = ''; bmiResult.value = "Esperando datos..."; return; }
+        if (pesoKg.value === '') { pesoLb.value = ''; pesoOz.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
         const kg = parseFloat(pesoKg.value);
         const totalLbs = kg * 2.20462;
         const lbs = Math.floor(totalLbs);
         pesoLb.value = lbs;
         pesoOz.value = ((totalLbs - lbs) * 16).toFixed(1);
-        calcularIMC();
+        calcularIMCDesdePeso();
     });
 
     function calcKgFromLbOz() {
         const lbs = parseFloat(pesoLb.value) || 0;
         const oz = parseFloat(pesoOz.value) || 0;
-        if (pesoLb.value === '' && pesoOz.value === '') { pesoKg.value = ''; bmiResult.value = "Esperando datos..."; return; }
+        if (pesoLb.value === '' && pesoOz.value === '') { pesoKg.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
         pesoKg.value = ((lbs * 0.453592) + (oz * 0.0283495)).toFixed(2);
-        calcularIMC();
+        calcularIMCDesdePeso();
     }
 
     pesoLb.addEventListener('input', calcKgFromLbOz);
@@ -358,20 +379,20 @@
 
     // ALTURA
     altCm.addEventListener('input', () => {
-        if (altCm.value === '') { altFt.value = ''; altIn.value = ''; bmiResult.value = "Esperando datos..."; return; }
+        if (altCm.value === '') { altFt.value = ''; altIn.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
         const cm = parseFloat(altCm.value);
         const totalInches = cm / 2.54;
         altFt.value = Math.floor(totalInches / 12);
         altIn.value = (totalInches % 12).toFixed(1);
-        calcularIMC();
+        calcularIMCDesdePeso();
     });
 
     function calcCmFromFtIn() {
         const ft = parseFloat(altFt.value) || 0;
         const inches = parseFloat(altIn.value) || 0;
-        if (altFt.value === '' && altIn.value === '') { altCm.value = ''; bmiResult.value = "Esperando datos..."; return; }
+        if (altFt.value === '' && altIn.value === '') { altCm.value = ''; bmiInput.value = ''; bmiCat.value = ''; return; }
         altCm.value = ((ft * 30.48) + (inches * 2.54)).toFixed(1);
-        calcularIMC();
+        calcularIMCDesdePeso();
     }
 
     altFt.addEventListener('input', calcCmFromFtIn);
@@ -421,8 +442,9 @@
         volTbsp.value = (ml / 14.7868).toFixed(1);
     });
 
-    // INICIALIZAR DATATABLES
-    $(document).ready(function() {$('#tabla-medica').DataTable({
+    // INICIALIZACIÓN DE DATATABLES
+    $(document).ready(function() {
+        $('#tabla-medica').DataTable({
             "paging": false,
             "info": false,
             "language": {
