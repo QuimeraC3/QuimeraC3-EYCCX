@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herramienta Integral para Intérpretes Médicos</title>
+    <meta name="description" content="Quimera — Equivalencias y Conversión Clínica para Intérpretes Médicos. Herramienta de consulta rápida con conversiones métricas, fórmulas y referencias clínicas.">
+    <meta name="theme-color" content="#0b1329">
+    <title>Equivalencias y Conversión Clínica • Quimera</title>
     
     <!-- Librerías para la tabla con buscador rápido -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -12,276 +14,292 @@
 
     <style>
         :root {
-            --primary: #0f766e;
-            --primary-light: #ccfbf1;
-            --bg: #f8fafc;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text: #0f172a;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary: #0f766e;
+            --primary-hover: #115e59;
+            --accent: #d97706;
+            --border-color: #e2e8f0;
+            --navy: #0b1329;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.04);
         }
-
+        html { scroll-behavior: smooth; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            padding: 20px;
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
         }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
+        .top-bar {
+            background: var(--navy);
+            padding: .85rem 2rem;
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,.1);
         }
-
-        h1 {
-            color: var(--primary);
-            text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 25px;
+        .top-bar-container {
+            max-width: 1150px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        /* GRID DE CALCULADORAS */
+        .brand-logo {
+            color:#fff; font-family: Georgia,"Times New Roman",serif;
+            font-size:1.1rem; font-weight:700; text-decoration:none;
+        }
+        .brand-logo:hover, .nav-links a:hover { color:#38bdf8; }
+        .nav-links { display:flex; gap:1.25rem; list-style:none; }
+        .nav-links a { color:#fff; text-decoration:none; font-size:.85rem; font-weight:500; }
+        header {
+            background: linear-gradient(135deg, rgba(11,19,41,.98), rgba(15,118,110,.82));
+            color:#fff; min-height:280px; padding:4rem 2rem 3rem;
+            text-align:center; border-bottom:4px solid var(--primary);
+        }
+        .vol-badge {
+            display:inline-block; background:var(--primary); color:#fff;
+            font-size:.8rem; font-weight:700; letter-spacing:.1em;
+            text-transform:uppercase; padding:.35rem 1rem; border-radius:9999px;
+            margin-bottom:1.25rem;
+        }
+        header h1 {
+            font-family:Georgia,"Times New Roman",serif; font-size:2.6rem;
+            font-weight:700; letter-spacing:-.02em; margin-bottom:.75rem;
+            text-shadow:0 2px 5px rgba(0,0,0,.35); text-transform:uppercase;
+        }
+        header p {
+            font-size:1.15rem; color:#fff; font-weight:600;
+            max-width:820px; margin:0 auto; text-shadow:0 1px 4px rgba(0,0,0,.4);
+        }
+        .container { max-width:1150px; margin:0 auto; padding:3rem 1.5rem; }
+        .section-title {
+            font-family:Georgia,"Times New Roman",serif; font-size:1.65rem;
+            color:var(--text-main); margin-bottom:1.5rem;
+            padding-bottom:.5rem; border-bottom:2px solid var(--border-color);
+        }
+        .intro-panel, .method-panel, .source-panel {
+            background:var(--card-bg); border:1px solid var(--border-color);
+            border-radius:12px; padding:2rem; box-shadow:var(--shadow); margin-bottom:2rem;
+        }
+        .intro-panel p, .method-panel p, .source-panel p { color:var(--text-muted); margin-bottom:.9rem; }
+        .notice {
+            border-left:4px solid var(--accent); background:#fffbeb;
+            padding:1rem 1.2rem; border-radius:0 8px 8px 0; color:#78350f; margin-top:1rem;
+        }
         .calculator-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+            gap:1.5rem; margin-bottom:2rem;
         }
-
         .calc-card {
-            background: var(--card-bg);
-            padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            background:var(--card-bg); padding:1.5rem; border-radius:12px;
+            box-shadow:var(--shadow); border:1px solid var(--border-color);
         }
-
         .calc-card h3 {
-            margin-top: 0;
-            color: var(--primary);
-            font-size: 1.05rem;
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 8px;
+            font-family:Georgia,"Times New Roman",serif; margin-top:0;
+            color:var(--text-main); font-size:1.15rem;
+            border-bottom:2px solid #ccfbf1; padding-bottom:.6rem; margin-bottom:1rem;
         }
-
         .input-group {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
+            margin-bottom:.7rem; display:flex; align-items:center;
+            justify-content:space-between; gap:8px;
         }
-
-        .input-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
+        .input-group label { font-size:.85rem; font-weight:600; }
         .input-group input {
-            width: 115px;
-            padding: 6px 8px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            text-align: right;
+            width:120px; padding:7px 8px; border:1px solid #cbd5e1;
+            border-radius:6px; font-size:.95rem; text-align:right;
         }
-
         .input-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--primary-light);
+            outline:none; border-color:var(--primary); box-shadow:0 0 0 2px #ccfbf1;
         }
-
-        /* ESTILOS DE LA TABLA */
         .table-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            background:var(--card-bg); padding:1.5rem; border-radius:12px;
+            box-shadow:var(--shadow); border:1px solid var(--border-color); margin-bottom:2rem;
         }
-
-        table.dataTable thead th {
-            background-color: var(--primary);
-            color: white;
-            border-bottom: none;
+        table.dataTable thead th { background:var(--primary); color:#fff; border-bottom:none; }
+        .method-grid, .source-list {
+            display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem;
+        }
+        .method-card, .source-item {
+            background:#f8fafc; border:1px solid var(--border-color);
+            border-radius:10px; padding:1rem;
+        }
+        .method-card h3, .source-item h3 {
+            font-family:Georgia,"Times New Roman",serif; font-size:1.05rem; margin-bottom:.4rem;
+        }
+        .method-card p, .source-item p { margin:0; font-size:.9rem; }
+        .source-item a { color:var(--primary); font-weight:600; text-decoration:none; }
+        .source-item a:hover { text-decoration:underline; }
+        .small-note { font-size:.82rem; color:var(--text-muted); margin-top:.8rem; }
+        footer {
+            text-align:center; padding:2.5rem 2rem; background:#0f172a; color:#fff;
+            font-size:.875rem; margin-top:4rem; border-top:1px solid rgba(255,255,255,.1);
+        }
+        footer p { color:#fff; }
+        @media (max-width:768px) {
+            header { padding:3.5rem 1.5rem; }
+            header h1 { font-size:1.8rem; }
+            header p { font-size:1rem; }
+            .top-bar-container { flex-direction:column; gap:.5rem; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Herramienta Integral para Intérpretes Médicos</h1>
+    <nav class="top-bar" aria-label="Navegación principal">
+        <div class="top-bar-container">
+            <a href="https://quimerac3.github.io/" class="brand-logo">QUIMERA - Inicio General</a>
+            <ul class="nav-links">
+                <li><a href="https://quimerac3.github.io/QuimeraC3-IM/">Interpretación Médica</a></li>
+                <li><a href="#fuentes">Fuentes y bases de referencia</a></li>
+            </ul>
+        </div>
+    </nav>
 
-    <!-- PANEL DE CONVERSIÓN RÁPIDA -->
-    <div class="calculator-grid">
-        
-        <!-- TEMPERATURA -->
-        <div class="calc-card">
-            <h3>🌡️ Temperatura</h3>
-            <div class="input-group">
-                <label for="temp-c">Celsius (°C):</label>
-                <input type="number" id="temp-c" placeholder="38.0" step="0.1">
+    <header>
+        <span class="vol-badge">&bull; Herramienta C³ &bull;</span>
+        <h1>Equivalencias y Conversión Clínica</h1>
+        <p>Herramienta de consulta rápida para la comprensión y comunicación de unidades y datos clínicos utilizados en la interpretación médica.</p>
+    </header>
+
+    <main class="container">
+
+        <section class="intro-panel">
+            <h2 class="section-title">Propósito de la herramienta</h2>
+            <p>Esta herramienta integra conversiones de unidades de uso frecuente y algunos parámetros clínicos de consulta rápida para apoyar la preparación y práctica del intérprete médico, especialmente ante diferencias entre unidades del Sistema Internacional y unidades de uso habitual en los Estados Unidos.</p>
+            <p>Las conversiones matemáticas se realizan mediante factores de conversión establecidos; los rangos clínicos se presentan como referencias orientativas y deben interpretarse de acuerdo con la edad, el contexto clínico, el método de medición y las guías aplicables.</p>
+            <div class="notice"><strong>Importante:</strong> esta herramienta no sustituye la valoración clínica, el diagnóstico, la prescripción ni las indicaciones de un profesional de la salud. Su finalidad es apoyar la comprensión y comunicación de información sanitaria.</div>
+        </section>
+
+        <h2 class="section-title">Conversión y cálculo rápido</h2>
+
+        <div class="calculator-grid">
+
+            <div class="calc-card">
+                <h3>🌡️ Temperatura</h3>
+                <div class="input-group"><label for="temp-c">Celsius (°C):</label><input type="number" id="temp-c" placeholder="38.0" step="0.1"></div>
+                <div class="input-group"><label for="temp-f">Fahrenheit (°F):</label><input type="number" id="temp-f" placeholder="100.4" step="0.1"></div>
+                <div class="input-group"><label for="temp-cat">Referencia:</label><input type="text" id="temp-cat" readonly placeholder="Auto" style="background:#f1f5f9;font-weight:bold;text-align:center;"></div>
+                <p class="small-note">Los umbrales de temperatura dependen del sitio y método de medición y del contexto clínico.</p>
             </div>
-            <div class="input-group">
-                <label for="temp-f">Fahrenheit (°F):</label>
-                <input type="number" id="temp-f" placeholder="100.4" step="0.1">
+
+            <div class="calc-card">
+                <h3>⚖️ Peso</h3>
+                <div class="input-group"><label for="peso-kg">Kilogramos (kg):</label><input type="number" id="peso-kg" placeholder="70" step="0.1"></div>
+                <div class="input-group"><label for="peso-lb">Libras (lb):</label><input type="number" id="peso-lb" placeholder="154" step="0.1"></div>
+                <div class="input-group"><label for="peso-oz">Onzas (oz):</label><input type="number" id="peso-oz" placeholder="0" step="0.1"></div>
             </div>
-            <div class="input-group">
-                <label for="temp-cat">Estado:</label>
-                <input type="text" id="temp-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
+
+            <div class="calc-card">
+                <h3>📏 Estatura / altura</h3>
+                <div class="input-group"><label for="alt-cm">Centímetros (cm):</label><input type="number" id="alt-cm" placeholder="170" step="0.5"></div>
+                <div class="input-group"><label for="alt-ft">Pies (ft):</label><input type="number" id="alt-ft" placeholder="5" step="1"></div>
+                <div class="input-group"><label for="alt-in">Pulgadas (in):</label><input type="number" id="alt-in" placeholder="7" step="0.5"></div>
             </div>
+
+            <div class="calc-card">
+                <h3>📊 IMC / BMI</h3>
+                <div class="input-group"><label for="bmi-input">Valor IMC:</label><input type="number" id="bmi-input" placeholder="24.5" step="0.1"></div>
+                <div class="input-group"><label for="bmi-cat">Categoría:</label><input type="text" id="bmi-cat" readonly placeholder="Auto" style="background:#f1f5f9;font-weight:bold;text-align:center;"></div>
+                <p class="small-note"><strong>Adultos:</strong> estas categorías no se aplican de la misma manera a niños y adolescentes.</p>
+            </div>
+
+            <div class="calc-card">
+                <h3>🩸 Glucosa en sangre</h3>
+                <div class="input-group"><label for="glu-mg">mg/dL:</label><input type="number" id="glu-mg" placeholder="100" step="1"></div>
+                <div class="input-group"><label for="glu-mmol">mmol/L:</label><input type="number" id="glu-mmol" placeholder="5.5" step="0.1"></div>
+                <div class="input-group"><label for="glu-cat">Referencia (ayuno):</label><input type="text" id="glu-cat" readonly placeholder="Auto" style="background:#f1f5f9;font-weight:bold;text-align:center;"></div>
+                <p class="small-note">Los criterios diagnósticos deben interpretarse conforme a las condiciones de la prueba y las guías vigentes.</p>
+            </div>
+
+            <div class="calc-card">
+                <h3>🥄 Volumen y equivalencias</h3>
+                <div class="input-group"><label for="vol-ml">Mililitros (mL):</label><input type="number" id="vol-ml" placeholder="15" step="0.5"></div>
+                <div class="input-group"><label for="vol-tsp">Cucharadita (tsp):</label><input type="number" id="vol-tsp" placeholder="3" step="0.1"></div>
+                <div class="input-group"><label for="vol-tbsp">Cucharada (tbsp):</label><input type="number" id="vol-tbsp" placeholder="1" step="0.1"></div>
+                <div class="input-group"><label for="vol-floz">Onza fluida (fl oz):</label><input type="number" id="vol-floz" placeholder="0.5" step="0.1"></div>
+                <p class="small-note"><strong>Medicamentos:</strong> para dosificar líquidos, utilizar un dispositivo calibrado en mL; las cucharas domésticas pueden variar de volumen.</p>
+            </div>
+
         </div>
 
-        <!-- PESO -->
-        <div class="calc-card">
-            <h3>⚖️ Peso</h3>
-            <div class="input-group">
-                <label for="peso-kg">Kilos (kg):</label>
-                <input type="number" id="peso-kg" placeholder="70" step="0.1">
-            </div>
-            <div class="input-group">
-                <label for="peso-lb">Libras (lb):</label>
-                <input type="number" id="peso-lb" placeholder="154" step="0.1">
-            </div>
-            <div class="input-group">
-                <label for="peso-oz">Onzas (oz):</label>
-                <input type="number" id="peso-oz" placeholder="0" step="0.1">
-            </div>
-        </div>
+        <section class="table-card">
+            <h2 class="section-title">Guía de consulta rápida</h2>
+            <table id="tabla-medica" class="display responsive nowrap" style="width:100%">
+                <thead>
+                    <tr><th>Categoría</th><th>Valor / Rango</th><th>Unidad / Rango alternativo</th><th>Nota clínica / referencia</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Presión arterial</td><td>&lt;120 / &lt;80 mmHg</td><td>Normal</td><td>Categoría AHA para adultos.</td></tr>
+                    <tr><td>Presión arterial</td><td>120–129 / &lt;80 mmHg</td><td>Elevada</td><td>Elevated blood pressure.</td></tr>
+                    <tr><td>Presión arterial</td><td>130–139 y/o 80–89 mmHg</td><td>Hipertensión, etapa 1</td><td>Stage 1 hypertension.</td></tr>
+                    <tr><td>Presión arterial</td><td>≥140 y/o ≥90 mmHg</td><td>Hipertensión, etapa 2</td><td>Stage 2 hypertension.</td></tr>
+                    <tr><td>Presión arterial</td><td>&gt;180 y/o &gt;120 mmHg</td><td>Valor severamente elevado</td><td>La presencia de síntomas o daño agudo de órgano determina la urgencia clínica.</td></tr>
 
-        <!-- ALTURA -->
-        <div class="calc-card">
-            <h3>📏 Altura</h3>
-            <div class="input-group">
-                <label for="alt-cm">Centímetros (cm):</label>
-                <input type="number" id="alt-cm" placeholder="170" step="0.5">
-            </div>
-            <div class="input-group">
-                <label for="alt-ft">Pies (ft):</label>
-                <input type="number" id="alt-ft" placeholder="5" step="1">
-            </div>
-            <div class="input-group">
-                <label for="alt-in">Pulgadas (in):</label>
-                <input type="number" id="alt-in" placeholder="7" step="0.5">
-            </div>
-        </div>
+                    <tr><td>Oxígeno (SpO₂)</td><td>95–100%</td><td>Rango habitual</td><td>Referencia habitual en adultos sanos en condiciones normales.</td></tr>
+                    <tr><td>Oxígeno (SpO₂)</td><td>&lt;95%</td><td>Por debajo del rango habitual</td><td>Interpretar según contexto, altitud, enfermedad y método de medición.</td></tr>
+                    <tr><td>Oxígeno (SpO₂)</td><td>≤92%</td><td>Valor bajo</td><td>Requiere valoración clínica según el contexto; no implica por sí solo una indicación terapéutica.</td></tr>
+                    <tr><td>Oxígeno (SpO₂)</td><td>≤88%</td><td>Valor muy bajo</td><td>Puede representar hipoxemia importante y requiere valoración clínica inmediata.</td></tr>
 
-        <!-- ÍNDICE DE MASA CORPORAL (IMC) - BIDIRECCIONAL -->
-        <div class="calc-card">
-            <h3>📊 IMC / BMI</h3>
-            <div class="input-group">
-                <label for="bmi-input">Valor IMC:</label>
-                <input type="number" id="bmi-input" placeholder="24.5" step="0.1">
+                    <tr><td>Frecuencia cardíaca</td><td>60–100 lpm</td><td>Adulto en reposo</td><td>Rango de referencia habitual; la interpretación depende del contexto.</td></tr>
+                    <tr><td>Frecuencia cardíaca</td><td>&lt;60 lpm</td><td>Bradicardia</td><td>La relevancia clínica depende de síntomas, edad, condición física y contexto.</td></tr>
+                    <tr><td>Frecuencia cardíaca</td><td>&gt;100 lpm</td><td>Taquicardia</td><td>La relevancia clínica depende del contexto y del ritmo.</td></tr>
+
+                    <tr><td>Glucosa plasmática en ayunas</td><td>&lt;100 mg/dL</td><td>&lt;5.6 mmol/L</td><td>No cumple criterio de prediabetes por glucosa en ayunas.</td></tr>
+                    <tr><td>Glucosa plasmática en ayunas</td><td>100–125 mg/dL</td><td>5.6–6.9 mmol/L</td><td>Glucosa alterada en ayunas / prediabetes.</td></tr>
+                    <tr><td>Glucosa plasmática en ayunas</td><td>≥126 mg/dL</td><td>≥7.0 mmol/L</td><td>Criterio de glucosa plasmática en ayunas compatible con diabetes; requiere confirmación diagnóstica cuando corresponda.</td></tr>
+                    <tr><td>Glucosa</td><td>&lt;70 mg/dL</td><td>&lt;3.9 mmol/L</td><td>Umbral habitual para hipoglucemia.</td></tr>
+
+                    <tr><td>Temperatura</td><td>36.5–37.3 °C</td><td>97.7–99.1 °F aprox.</td><td>Rango aproximado en adultos sanos en reposo; varía según sitio y método.</td></tr>
+                    <tr><td>Temperatura</td><td>37.5–37.9 °C</td><td>99.5–100.2 °F aprox.</td><td>Temperatura elevada; interpretar según método y contexto.</td></tr>
+                    <tr><td>Temperatura</td><td>≥38.0 °C</td><td>≥100.4 °F</td><td>Umbral comúnmente utilizado para fiebre; el contexto clínico es determinante.</td></tr>
+
+                    <tr><td>Volumen</td><td>5 mL</td><td>1 tsp</td><td>Equivalencia de referencia.</td></tr>
+                    <tr><td>Volumen</td><td>15 mL</td><td>1 tbsp / 3 tsp</td><td>Equivalencia de referencia.</td></tr>
+                    <tr><td>Volumen</td><td>29.57 mL aprox.</td><td>1 U.S. fl oz</td><td>Onza fluida estadounidense.</td></tr>
+                    <tr><td>Volumen</td><td>240 mL aprox.</td><td>8 U.S. fl oz / 1 cup</td><td>Equivalencia aproximada de referencia.</td></tr>
+
+                    <tr><td>IMC (BMI), adultos</td><td>&lt;18.5</td><td>Bajo peso</td><td>Underweight.</td></tr>
+                    <tr><td>IMC (BMI), adultos</td><td>18.5–24.9</td><td>Peso saludable</td><td>Healthy weight.</td></tr>
+                    <tr><td>IMC (BMI), adultos</td><td>25.0–29.9</td><td>Sobrepeso</td><td>Overweight.</td></tr>
+                    <tr><td>IMC (BMI), adultos</td><td>30.0–34.9</td><td>Obesidad clase 1</td><td>Obesity class 1.</td></tr>
+                    <tr><td>IMC (BMI), adultos</td><td>35.0–39.9</td><td>Obesidad clase 2</td><td>Obesity class 2.</td></tr>
+                    <tr><td>IMC (BMI), adultos</td><td>≥40.0</td><td>Obesidad clase 3</td><td>Obesity class 3.</td></tr>
+                </tbody>
+            </table>
+            <p class="small-note">La tabla es una guía de consulta rápida. No debe utilizarse de forma aislada para diagnosticar o tratar una condición clínica.</p>
+        </section>
+
+        <section class="method-panel">
+            <h2 class="section-title">Base metodológica de la herramienta</h2>
+            <div class="method-grid">
+                <article class="method-card"><h3>01. Conversión metrológica</h3><p>Factores de conversión para unidades métricas y unidades de uso estadounidense, con redondeo explícito cuando corresponde.</p></article>
+                <article class="method-card"><h3>02. Cálculo clínico</h3><p>Fórmulas reproducibles para IMC y conversiones de concentración de glucosa, diferenciadas de los criterios clínicos.</p></article>
+                <article class="method-card"><h3>03. Referencia clínica</h3><p>Los rangos y categorías se presentan como referencias dependientes del contexto y no como instrucciones diagnósticas o terapéuticas.</p></article>
+                <article class="method-card"><h3>04. Trazabilidad</h3><p>Las principales conversiones y referencias clínicas se vinculan con fuentes institucionales para facilitar su verificación y actualización.</p></article>
             </div>
-            <div class="input-group">
-                <label for="bmi-cat">Categoría:</label>
-                <input type="text" id="bmi-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
+        </section>
+
+        <section class="source-panel" id="fuentes">
+            <h2 class="section-title">Fuentes y bases de referencia</h2>
+            <div class="source-list">
+                <article class="source-item"><h3>1. NIST — Conversiones métricas</h3><p>National Institute of Standards and Technology. <em>Approximate Conversions from U.S. Customary Measures to Metric.</em></p><p><a href="https://www.nist.gov/pml/owm/metric-si/unit-conversion/approximate-conversions-us-customary-measures-metric" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>2. CDC — IMC en adultos</h3><p>Centers for Disease Control and Prevention. <em>Adult BMI Categories / Adult BMI Calculator.</em></p><p><a href="https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>3. ADA — Diagnóstico de diabetes</h3><p>American Diabetes Association. <em>Standards of Care in Diabetes—2026: Diagnosis and Classification of Diabetes.</em></p><p><a href="https://diabetesjournals.org/care/article/49/Supplement_1/S27/163926/2-Diagnosis-and-Classification-of-Diabetes" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>4. AHA — Presión arterial</h3><p>American Heart Association. <em>Understanding Blood Pressure Readings / Blood Pressure Explained.</em></p><p><a href="https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>5. FDA — Equivalencias de volumen</h3><p>U.S. Food and Drug Administration. <em>Guidelines for Determining Metric Equivalents of Household Measures.</em></p><p><a href="https://www.fda.gov/regulatory-information/search-fda-guidance-documents/guidance-industry-guidelines-determining-metric-equivalents-household-measures" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>6. FDA — Dosificación de medicamentos líquidos</h3><p>U.S. Food and Drug Administration. <em>Standardize the Dosing Designations on Prescription Container Labels for Oral Liquid Medications.</em></p><p><a href="https://www.fda.gov/files/drugs/published/Standardize-the-Dosing-Designations-on-Prescription-Container-Labels-for-Oral-Liquid-Medications-%28pdf%29.pdf" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>7. MedlinePlus — Signos vitales</h3><p>U.S. National Library of Medicine. <em>Signos vitales.</em> Referencia para temperatura y frecuencia cardíaca.</p><p><a href="https://medlineplus.gov/spanish/ency/article/002341.htm" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
+                <article class="source-item"><h3>8. MedlinePlus — Pulsioximetría</h3><p>U.S. National Library of Medicine. <em>Pulsioximetría.</em> Referencia sobre SpO₂ y factores que pueden afectar su interpretación.</p><p><a href="https://medlineplus.gov/spanish/pruebas-de-laboratorio/pulsioximetria/" target="_blank" rel="noopener noreferrer">Consultar fuente ↗</a></p></article>
             </div>
-        </div>
+            <p class="small-note"><strong>Nota de actualización:</strong> las guías clínicas pueden modificarse. Las fuentes institucionales deben consultarse nuevamente cuando se utilice la herramienta para actividades académicas, clínicas o de actualización profesional.</p>
+        </section>
 
-        <!-- GLICEMIA -->
-        <div class="calc-card">
-            <h3>🩸 Glicemia</h3>
-            <div class="input-group">
-                <label for="glu-mg">mg/dL (EE. UU.):</label>
-                <input type="number" id="glu-mg" placeholder="100" step="1">
-            </div>
-            <div class="input-group">
-                <label for="glu-mmol">mmol/L (Intl):</label>
-                <input type="number" id="glu-mmol" placeholder="5.5" step="0.1">
-            </div>
-            <div class="input-group">
-                <label for="glu-cat">Estado (Ayuno):</label>
-                <input type="text" id="glu-cat" readonly placeholder="Auto" style="background: #f1f5f9; font-weight: bold; text-align: center;">
-            </div>
-        </div>
+    </main>
 
-        <!-- DOSIS Y VOLUMEN -->
-        <div class="calc-card">
-            <h3>🥄 Volumen / Dosis</h3>
-            <div class="input-group">
-                <label for="vol-ml">Mililitros (mL/cc):</label>
-                <input type="number" id="vol-ml" placeholder="15" step="0.5">
-            </div>
-            <div class="input-group">
-                <label for="vol-tsp">Cucharadita (tsp):</label>
-                <input type="number" id="vol-tsp" placeholder="3" step="0.1">
-            </div>
-            <div class="input-group">
-                <label for="vol-tbsp">Cucharada (tbsp):</label>
-                <input type="number" id="vol-tbsp" placeholder="1" step="0.1">
-            </div>
-            <div class="input-group">
-                <label for="vol-floz">Onza Fluida (fl oz):</label>
-                <input type="number" id="vol-floz" placeholder="0.5" step="0.1">
-            </div>
-        </div>
+    <footer>
+        <p id="footer-p">&bull; &copy; 2026 Instituto Quimera. &bull; Centro de Investigación, Docencia, Servicio y Difusión. &bull; Dr.C. Cesar Cerezo Camacho. &bull; Todos los derechos reservados. &bull;</p>
+    </footer>
 
-    </div>
-
-    <!-- GUÍA DE CONSULTA RÁPIDA EN TABLA -->
-    <div class="table-card">
-        <h3 style="margin-top:0; color: var(--primary);">📋 Guía de Consulta Rápida</h3>
-        <table id="tabla-medica" class="display responsive nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Categoría</th>
-                    <th>Valor / Rango</th>
-                    <th>Unidad / Rango Alt.</th>
-                    <th>Nota Clínica / Referencia</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- PRESIÓN ARTERIAL -->
-                <tr><td>Presión Arterial</td><td>< 120 / < 80 mmHg</td><td>Normal</td><td>Presión arterial óptima</td></tr>
-                <tr><td>Presión Arterial</td><td>120–129 / < 80 mmHg</td><td>Elevada</td><td>Elevated blood pressure</td></tr>
-                <tr><td>Presión Arterial</td><td>130–139 / 80–89 mmHg</td><td>HTA Etapa 1</td><td>Stage 1 Hypertension</td></tr>
-                <tr><td>Presión Arterial</td><td>140+ / 90+ mmHg</td><td>HTA Etapa 2</td><td>Stage 2 Hypertension</td></tr>
-                <tr><td>Presión Arterial</td><td>> 180 / > 120 mmHg</td><td>Crisis Hipertensiva</td><td>Hypertensive Crisis (Atención urgente)</td></tr>
-
-                <!-- SATURACIÓN O2 Y PULSO -->
-                <tr><td>Oxígeno (SpO2)</td><td>95% – 100%</td><td>Normal</td><td>Saturación normal de oxígeno</td></tr>
-                <tr><td>Oxígeno (SpO2)</td><td>90% – 94%</td><td>Hipoxia Leve</td><td>Mild Hypoxia (Monitorear)</td></tr>
-                <tr><td>Oxígeno (SpO2)</td><td>< 90%</td><td>Hipoxia Severa</td><td>Severe Hypoxia (Requiere O2)</td></tr>
-                <tr><td>Frecuencia Cardíaca</td><td>60 – 100 BPM</td><td>Normal</td><td>Frecuencia cardíaca en reposo</td></tr>
-                <tr><td>Frecuencia Cardíaca</td><td>< 60 BPM</td><td>Bradicardia</td><td>Bradycardia (Ritmo lento)</td></tr>
-                <tr><td>Frecuencia Cardíaca</td><td>> 100 BPM</td><td>Taquicardia</td><td>Tachycardia (Ritmo rápido)</td></tr>
-
-                <!-- GLICEMIA -->
-                <tr><td>Glicemia (Ayuno)</td><td>70 – 99 mg/dL</td><td>3.9 – 5.5 mmol/L</td><td>Glicemia normal en ayunas</td></tr>
-                <tr><td>Glicemia (Ayuno)</td><td>100 – 125 mg/dL</td><td>5.6 – 6.9 mmol/L</td><td>Prediabetes (Impaired fasting glucose)</td></tr>
-                <tr><td>Glicemia (Ayuno)</td><td>≥ 126 mg/dL</td><td>≥ 7.0 mmol/L</td><td>Criterio diagnóstico de Diabetes</td></tr>
-                <tr><td>Glicemia</td><td>< 70 mg/dL</td><td>< 3.9 mmol/L</td><td>Hipoglucemia (Low blood sugar)</td></tr>
-
-                <!-- TEMPERATURA -->
-                <tr><td>Temperatura</td><td>36.5 °C</td><td>97.7 °F</td><td>Normal baja</td></tr>
-                <tr><td>Temperatura</td><td>37.0 °C</td><td>98.6 °F</td><td>Normal promedio</td></tr>
-                <tr><td>Temperatura</td><td>37.5 °C</td><td>99.5 °F</td><td>Febrícula (Low-grade fever)</td></tr>
-                <tr><td>Temperatura</td><td>38.0 °C</td><td>100.4 °F</td><td>Umbral de Fiebre (Fever)</td></tr>
-                <tr><td>Temperatura</td><td>39.0 °C</td><td>102.2 °F</td><td>Fiebre alta</td></tr>
-
-                <!-- VOLUMEN Y DOSIS -->
-                <tr><td>Volumen Dosis</td><td>5 mL (cc)</td><td>1 tsp / cucharadita</td><td>1 Cucharadita de té (Teaspoon)</td></tr>
-                <tr><td>Volumen Dosis</td><td>15 mL (cc)</td><td>1 tbsp / 3 tsp</td><td>1 Cucharada sopera (Tablespoon)</td></tr>
-                <tr><td>Volumen Dosis</td><td>30 mL (cc)</td><td>1 fl oz / 2 tbsp</td><td>1 Onza fluida (Fluid ounce)</td></tr>
-                <tr><td>Volumen Dosis</td><td>240 mL (cc)</td><td>8 fl oz / 1 cup</td><td>1 Taza (Cup)</td></tr>
-
-                <!-- PESO -->
-                <tr><td>Peso (Bebés)</td><td>2.5 kg</td><td>5 lb 8 oz</td><td>Límite de peso bajo al nacer</td></tr>
-                <tr><td>Peso (Bebés)</td><td>3.5 kg</td><td>7 lb 11 oz</td><td>Peso promedio al nacer</td></tr>
-                <tr><td>Peso</td><td>70 kg</td><td>154.3 lbs</td><td>Adulto promedio</td></tr>
-
-                <!-- ALTURA -->
-                <tr><td>Altura</td><td>160 cm</td><td>5 ft 3 in</td><td>Estatura promedio femenina</td></tr>
-                <tr><td>Altura</td><td>170 cm</td><td>5 ft 7 in</td><td>Estatura promedio masculina</td></tr>
-
-                <!-- IMC / BMI OMS -->
-                <tr><td>IMC (BMI)</td><td>< 18.5</td><td>Bajo peso</td><td>Underweight</td></tr>
-                <tr><td>IMC (BMI)</td><td>18.5 – 24.9</td><td>Peso normal</td><td>Normal weight</td></tr>
-                <tr><td>IMC (BMI)</td><td>25.0 – 29.9</td><td>Sobrepeso</td><td>Overweight</td></tr>
-                <tr><td>IMC (BMI)</td><td>30.0 +</td><td>Obesidad</td><td>Obesity</td></tr>
-            </tbody>
-        </table>
     </div>
 </div>
 
@@ -379,10 +397,10 @@
             gluCat.value = "Normal";
             gluCat.style.color = COLOR_GREEN;
         } else if (mg <= 125) {
-            gluCat.value = "Prediabetes";
+            gluCat.value = "Glucosa alterada / prediabetes";
             gluCat.style.color = COLOR_YELLOW;
         } else {
-            gluCat.value = "Hiperglucemia";
+            gluCat.value = "Glucosa elevada";
             gluCat.style.color = COLOR_RED;
         }
     }
@@ -546,5 +564,11 @@
     });
 </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const footerP = document.getElementById('footer-p');
+            if (footerP) footerP.innerHTML = footerP.innerHTML.replace('2026', new Date().getFullYear());
+        });
+    </script>
 </body>
 </html>
